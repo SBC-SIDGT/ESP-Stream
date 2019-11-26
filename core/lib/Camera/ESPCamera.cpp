@@ -31,10 +31,21 @@ uint8_t ESPCamera::setup() {
     _config.jpeg_quality = 10;
     _config.fb_count = 2;
     esp_err_t err = esp_camera_init(&_config);
+    if (err == ESP_OK) {
+        sensor_t *s = esp_camera_sensor_get();
+        //initial sensors are flipped vertically and colors are a bit saturated
+        if (s->id.PID == OV3660_PID) {
+            s->set_vflip(s, 1);         //flip it back
+            s->set_brightness(s, 1);    //up the blightness just a bit
+            s->set_saturation(s, -2);   //lower the saturation
+        }
+        //drop down frame size for higher initial frame rate
+        s->set_framesize(s, FRAMESIZE_QVGA);
+    }
     return err != ESP_OK ? 1 : 0;
 }
 
-camera_fb_t* ESPCamera::takePicture() {
+camera_fb_t *ESPCamera::takePicture() {
     camera_fb_t *pic = NULL;
     pic = esp_camera_fb_get();
     return !pic ? NULL : pic;

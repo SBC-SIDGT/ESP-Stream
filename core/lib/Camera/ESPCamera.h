@@ -9,7 +9,7 @@ class ESPCamera
     public:
         ESPCamera();
         uint8_t setup();
-        camera_fb_t* takePicture();
+        camera_fb_t *takePicture();
         ~ESPCamera();
     private:
         camera_config_t _config;
