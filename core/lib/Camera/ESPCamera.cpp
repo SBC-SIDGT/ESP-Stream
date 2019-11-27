@@ -51,6 +51,10 @@ camera_fb_t *ESPCamera::takePicture() {
     return !pic ? NULL : pic;
 }
 
+void ESPCamera::return_fb(camera_fb_t *fb) {
+    esp_camera_fb_return(fb);
+}
+
 ESPCamera::~ESPCamera() {
     delete &_config;
 }

@@ -10,6 +10,7 @@ class ESPCamera
         ESPCamera();
         uint8_t setup();
         camera_fb_t *takePicture();
+        void return_fb(camera_fb_t *fb);
         ~ESPCamera();
     private:
         camera_config_t _config;
