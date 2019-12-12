@@ -3,14 +3,19 @@
 
 #include "esp_http_server.h"
 #include "fb_gfx.h"
+#include "esp_http_client.h"
 
 #include "ESPCamera.h"
+
+#define URL "http://138.100.155.28/"
 
 typedef struct
 {
     httpd_req_t *req;
     size_t len;
 } jpg_chunking_t;
+
+static ESPCamera *camera_ptr = nullptr;
 
 static size_t jpg_encode_stream(void *arg, size_t index, const void *data, size_t len)
 {
@@ -30,10 +35,10 @@ static size_t jpg_encode_stream(void *arg, size_t index, const void *data, size_
 class HTTPServer {
     public:
         HTTPServer();
-        uint8_t setup(ESPCamera *camera);
+        uint8_t setup(void);
         static esp_err_t handler(httpd_req_t *req) {
             esp_err_t res = ESP_OK;
-            camera_fb_t *fb = HTTPServer::_camera->takePicture();
+            camera_fb_t *fb = camera_ptr->takePicture();
             if (!fb) {
                 return ESP_FAIL;
             }
@@ -44,17 +49,27 @@ class HTTPServer {
                 res = httpd_resp_send(req, (const char *)fb->buf, fb->len);
             } else {
                 jpg_chunking_t jchunk = {req, 0};
-                res = frame2jpg_cb(fb, 80, jpg_encode_stream, &jchunk) ? ESP_OK : ESP_FAIL;
+                res = frame2jpg_cb(fb, 100, jpg_encode_stream, &jchunk) ? ESP_OK : ESP_FAIL;
                 httpd_resp_send_chunk(req, NULL, 0);
             }
-            HTTPServer::_camera->return_fb(fb);
+            camera_ptr->return_fb(fb);
             return res;
         }
         ~HTTPServer();
     private:
         httpd_config_t    _config;
         httpd_handle_t    _camera_handler;
-        static ESPCamera *_camera;
+};
+
+class HTTPRequest {
+    public:
+        HTTPRequest(ESPCamera *camera);
+        void setup(void);
+        void loop(void);
+        ~HTTPRequest(void);
+    private:
+        ESPCamera *_camera;
+        esp_http_client_handle_t http_client;
 };
 
 #endif

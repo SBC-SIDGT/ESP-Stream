@@ -6,6 +6,8 @@ ESPCamera::ESPCamera() {
 }
 
 uint8_t ESPCamera::setup() {
+    pinMode(13, INPUT_PULLUP);
+    pinMode(14, INPUT_PULLUP);
     _config.ledc_channel = LEDC_CHANNEL_0;
     _config.ledc_timer = LEDC_TIMER_0;
     _config.pin_d0 = Y2_GPIO_NUM;
@@ -34,11 +36,11 @@ uint8_t ESPCamera::setup() {
     if (err == ESP_OK) {
         sensor_t *s = esp_camera_sensor_get();
         //initial sensors are flipped vertically and colors are a bit saturated
-        if (s->id.PID == OV3660_PID) {
+        // if (s->id.PID == OV3660_PID) {
             s->set_vflip(s, 1);         //flip it back
             s->set_brightness(s, 1);    //up the blightness just a bit
             s->set_saturation(s, -2);   //lower the saturation
-        }
+        // }
         //drop down frame size for higher initial frame rate
         s->set_framesize(s, FRAMESIZE_QVGA);
     }
@@ -52,6 +54,9 @@ camera_fb_t *ESPCamera::takePicture() {
 }
 
 void ESPCamera::return_fb(camera_fb_t *fb) {
+    if(fb->format != PIXFORMAT_JPEG) {
+        free(fb->buf);
+    }
     esp_camera_fb_return(fb);
 }
 
